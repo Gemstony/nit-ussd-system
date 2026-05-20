@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/UssdSession.php';
 require_once __DIR__ . '/../models/Student.php';
 require_once __DIR__ . '/../models/Results.php';
+require_once __DIR__ . '/../models/Fee.php';
 
 // We'll add the other models (Results, Fee, CourseReg, Announcement) later.
 
@@ -10,11 +11,13 @@ class UssdController
     private $sessionModel;
     private $studentModel;
     private $resultsModel;
+    private $feeModel;
     public function __construct()
     {
         $this->sessionModel = new UssdSession();
         $this->studentModel = new Student();
         $this->resultsModel = new Results();
+        $this->feeModel = new Fee();
     }
 
     /**
@@ -54,6 +57,9 @@ class UssdController
                 return $this->handlePinInput($session_id, $user_input, $payload);
             case 'viewing_results':
                 return $this->handleViewingResults($session_id, $user_input, $payload);
+
+            case 'viewing_fees':
+                return $this->handleViewingFees($session_id, $user_input, $payload);
             // We'll add more states as we build the menu (e.g., showing results, fees, etc.)
 
             default:
@@ -227,8 +233,36 @@ class UssdController
 
     private function showFeeBalance($session_id, $reg_no)
     {
-        // Placeholder – to be implemented
-        return "END Fee balance feature coming soon.";
+        // Get all fee records for this student
+        $feeRecords = $this->feeModel->getFeeBalance($reg_no);
+
+        if (empty($feeRecords)) {
+            $this->sessionModel->deleteSession($session_id);
+            return "END No fee records found for registration number: $reg_no";
+        }
+
+        // If only one record, show it directly and end session (or go back to menu)
+        if (count($feeRecords) == 1) {
+            $output = "CON Fee Balance:\n------------------------\n";
+            $output .= $this->feeModel->formatSingleFeeRecord($feeRecords[0]);
+            $output .= "\n\n0. Main Menu\n";
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $output;
+        }
+
+        // Multiple semesters – show paginated
+        $output = "CON Fee Balances:\n------------------------\n";
+        $output .= $this->feeModel->formatMultipleFeesForUssd($feeRecords);
+        $output .= "\n0. Main Menu\n";
+
+        // Store fee records and offset for pagination
+        $this->sessionModel->updateState($session_id, 'viewing_fees', [
+            'reg_no' => $reg_no,
+            'fee_data' => $feeRecords,
+            'offset' => 0
+        ]);
+
+        return $output;
     }
 
     private function showRegistrationStatus($session_id, $reg_no)
@@ -268,5 +302,37 @@ class UssdController
             return $this->handleWelcome($session_id);
         }
     }
+
+
+    private function handleViewingFees($session_id, $input, $payload) {
+    $reg_no = $payload['reg_no'] ?? null;
+    $feeRecords = $payload['fee_data'] ?? [];
+    $offset = $payload['offset'] ?? 0;
+    
+    if ($input === '0') {
+        // Go back to main menu
+        $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+        return $this->handleWelcome($session_id);
+    }
+    
+    // User pressed any other key – show next page if available
+    $new_offset = $offset + 2;
+    if ($this->feeModel->hasMoreRecords($feeRecords, $offset)) {
+        $output = "CON Fee Balances (continued):\n------------------------\n";
+        $output .= $this->feeModel->formatMultipleFeesForUssd($feeRecords, $new_offset);
+        $output .= "\n0. Main Menu\n";
+        
+        $this->sessionModel->updateState($session_id, 'viewing_fees', [
+            'reg_no' => $reg_no,
+            'fee_data' => $feeRecords,
+            'offset' => $new_offset
+        ]);
+        return $output;
+    } else {
+        // No more records, return to main menu
+        $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+        return $this->handleWelcome($session_id);
+    }
+}
 }
 ?>
