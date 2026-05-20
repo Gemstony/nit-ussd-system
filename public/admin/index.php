@@ -25,32 +25,50 @@ $sessionsToday = $stmt->fetch()['total'];
 include 'includes/header.php';
 ?>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <h3>👨‍🎓 Students</h3>
-        <p style="font-size: 2em;"><?php echo $totalStudents; ?></p>
+<div class="row g-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-people me-2 text-primary"></i>Students</h5>
+                <p class="card-text display-4 fw-bold text-primary"><?php echo $totalStudents; ?></p>
+            </div>
+        </div>
     </div>
-    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <h3>💰 Fees Collected</h3>
-        <p style="font-size: 2em;">TZS <?php echo number_format($totalFees, 0); ?></p>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-cash-coin me-2 text-success"></i>Fees Collected</h5>
+                <p class="card-text display-6 fw-bold text-success">TZS <?php echo number_format($totalFees, 0); ?></p>
+            </div>
+        </div>
     </div>
-    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <h3>📢 Active Announcements</h3>
-        <p style="font-size: 2em;"><?php echo $activeAnnouncements; ?></p>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-megaphone me-2 text-info"></i>Active Announcements</h5>
+                <p class="card-text display-4 fw-bold text-info"><?php echo $activeAnnouncements; ?></p>
+            </div>
+        </div>
     </div>
-    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <h3>📞 USSD Sessions Today</h3>
-        <p style="font-size: 2em;"><?php echo $sessionsToday; ?></p>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-telephone me-2 text-warning"></i>USSD Sessions Today</h5>
+                <p class="card-text display-4 fw-bold text-warning"><?php echo $sessionsToday; ?></p>
+            </div>
+        </div>
     </div>
 </div>
 
-<div style="margin-top: 30px; background: white; padding: 20px; border-radius: 8px;">
-    <h3>Quick Actions</h3>
-    <p>
-        <a href="students/add.php" style="background: #1a73e8; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">➕ Add Student</a>
-        <a href="results/upload.php" style="background: #1a73e8; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">📤 Upload Results (CSV)</a>
-        <a href="announcements/add.php" style="background: #1a73e8; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">📢 New Announcement</a>
-    </p>
+<div class="card mt-4 shadow-sm">
+    <div class="card-body">
+        <h3 class="card-title"><i class="bi bi-lightning me-2"></i>Quick Actions</h3>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <a href="students/add.php" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Student</a>
+            <a href="results/upload.php" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Upload Results (CSV)</a>
+            <a href="announcements/add.php" class="btn btn-primary"><i class="bi bi-megaphone me-1"></i>New Announcement</a>
+        </div>
+    </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>

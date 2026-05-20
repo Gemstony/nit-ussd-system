@@ -47,41 +47,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+<div class="card p-4 mx-auto" style="max-width: 600px;">
     <h3>Add Single Result</h3>
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <?php if ($success): ?>
-        <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($success); ?></div>
+        <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
     <?php endif; ?>
     <form method="POST">
-        <div style="margin-bottom: 15px;">
-            <label>Registration Number:</label>
-            <input type="text" name="reg_no" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Registration Number:</label>
+            <input type="text" name="reg_no" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Semester:</label>
-            <input type="text" name="semester" required placeholder="e.g., 2024/2025 Sem I" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Semester:</label>
+            <input type="text" name="semester" required placeholder="e.g., 2024/2025 Sem I" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Course Code:</label>
-            <input type="text" name="course_code" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Course Code:</label>
+            <input type="text" name="course_code" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Course Name (optional):</label>
-            <input type="text" name="course_name" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Course Name (optional):</label>
+            <input type="text" name="course_name" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Grade:</label>
-            <input type="text" name="grade" required placeholder="e.g., A, B+, C" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Grade:</label>
+            <input type="text" name="grade" required placeholder="e.g., A, B+, C" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Marks (0-100):</label>
-            <input type="number" name="marks" step="0.01" min="0" max="100" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Marks (0-100):</label>
+            <input type="number" name="marks" step="0.01" min="0" max="100" required class="form-control">
         </div>
-        <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Save Result</button>
-        <a href="index.php" style="margin-left: 10px;">Cancel</a>
+        <button type="submit" class="btn btn-success">Save Result</button>
+        <a href="index.php" class="btn btn-secondary ms-2">Cancel</a>
     </form>
 </div>
 

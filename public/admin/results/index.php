@@ -56,45 +56,48 @@ $results = $stmt->fetchAll();
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px;">
+<div class="card p-4">
     <h3>Results Management</h3>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
         <div>
-            <a href="add.php" style="background: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">➕ Add Single Result</a>
-            <!-- <a href="upload.php" style="background: #17a2b8; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">📤 Upload CSV</a> -->
+            <a href="add.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Add Single Result</a>
+            <!-- <a href="upload.php" class="btn btn-info"><i class="bi bi-upload me-1"></i>Upload CSV</a> -->
         </div>
-        <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" name="reg_no" placeholder="Reg No" value="<?php echo htmlspecialchars($reg_no); ?>" style="padding: 6px;">
-            <input type="text" name="semester" placeholder="Semester" value="<?php echo htmlspecialchars($semester); ?>" style="padding: 6px;">
-            <input type="text" name="course_code" placeholder="Course Code" value="<?php echo htmlspecialchars($course_code); ?>" style="padding: 6px;">
-            <button type="submit" style="background: #1a73e8; color: white; border: none; padding: 6px 12px;">Filter</button>
-            <a href="index.php" style="background: #6c757d; color: white; padding: 6px 12px; text-decoration: none;">Reset</a>
+        <form method="GET" class="d-flex gap-2 flex-wrap">
+            <input type="text" name="reg_no" class="form-control form-control-sm" placeholder="Reg No" value="<?php echo htmlspecialchars($reg_no); ?>">
+            <input type="text" name="semester" class="form-control form-control-sm" placeholder="Semester" value="<?php echo htmlspecialchars($semester); ?>">
+            <input type="text" name="course_code" class="form-control form-control-sm" placeholder="Course Code" value="<?php echo htmlspecialchars($course_code); ?>">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="index.php" class="btn btn-secondary btn-sm">Reset</a>
         </form>
     </div>
     
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr><th>Reg No</th><th>Student</th><th>Semester</th><th>Course Code</th><th>Course Name</th><th>Grade</th><th>Marks</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach ($results as $r): ?>
-            <tr>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['reg_no']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['full_name']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['semester']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['course_code']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['course_name']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['grade']); ?></td>
-                <td style="padding: 8px;"><?php echo htmlspecialchars($r['marks']); ?></td>
-                <td style="padding: 8px;">
-                    <a href="edit.php?id=<?php echo $r['result_id']; ?>">Edit</a> |
-                    <a href="delete.php?id=<?php echo $r['result_id']; ?>" onclick="return confirm('Delete this result?');">Delete</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        <?php if (empty($results)): ?>
-            <tr><td colspan="8" style="padding: 20px; text-align: center;">No results found.</td></tr>
-        <?php endif; ?>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr><th>Reg No</th><th>Student</th><th>Semester</th><th>Course Code</th><th>Course Name</th><th>Grade</th><th>Marks</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <?php foreach ($results as $r): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($r['reg_no']); ?></td>
+                    <td><?php echo htmlspecialchars($r['full_name']); ?></td>
+                    <td><?php echo htmlspecialchars($r['semester']); ?></td>
+                    <td><?php echo htmlspecialchars($r['course_code']); ?></td>
+                    <td><?php echo htmlspecialchars($r['course_name']); ?></td>
+                    <td><?php echo htmlspecialchars($r['grade']); ?></td>
+                    <td><?php echo htmlspecialchars($r['marks']); ?></td>
+                    <td>
+                        <a href="edit.php?id=<?php echo $r['result_id']; ?>" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                        <a href="delete.php?id=<?php echo $r['result_id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this result?');"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (empty($results)): ?>
+                <tr><td colspan="8" class="text-center py-4">No results found.</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

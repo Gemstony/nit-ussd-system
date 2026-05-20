@@ -55,30 +55,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+<div class="card p-4 mx-auto" style="max-width: 600px;">
     <h3>Edit Student: <?php echo htmlspecialchars($student['reg_no']); ?></h3>
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <form method="POST">
-        <div style="margin-bottom: 15px;">
-            <label>Registration Number:</label>
-            <input type="text" value="<?php echo htmlspecialchars($student['reg_no']); ?>" disabled style="width: 100%; padding: 8px; background: #eee;">
+        <div class="mb-3">
+            <label class="form-label">Registration Number:</label>
+            <input type="text" value="<?php echo htmlspecialchars($student['reg_no']); ?>" disabled class="form-control bg-light">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Full Name:</label>
-            <input type="text" name="full_name" value="<?php echo htmlspecialchars($student['full_name']); ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Full Name:</label>
+            <input type="text" name="full_name" value="<?php echo htmlspecialchars($student['full_name']); ?>" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Phone Number:</label>
-            <input type="text" name="phone_number" value="<?php echo htmlspecialchars($student['phone_number']); ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Phone Number:</label>
+            <input type="text" name="phone_number" value="<?php echo htmlspecialchars($student['phone_number']); ?>" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Change PIN (leave blank to keep current):</label>
-            <input type="password" name="new_pin" placeholder="New PIN (4-6 digits)" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Change PIN (leave blank to keep current):</label>
+            <input type="password" name="new_pin" placeholder="New PIN (4-6 digits)" class="form-control">
         </div>
-        <button type="submit" style="background: #ffc107; color: black; padding: 10px 20px; border: none; border-radius: 4px;">Update Student</button>
-        <a href="index.php" style="margin-left: 10px;">Cancel</a>
+        <button type="submit" class="btn btn-warning">Update Student</button>
+        <a href="index.php" class="btn btn-secondary ms-2">Cancel</a>
     </form>
 </div>
 

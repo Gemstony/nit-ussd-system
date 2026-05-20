@@ -42,29 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+<div class="card p-4 mx-auto" style="max-width: 600px;">
     <h3>Record Fee Payment</h3>
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <?php if ($success): ?>
-        <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($success); ?></div>
+        <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
     <?php endif; ?>
     <form method="POST">
-        <div style="margin-bottom: 15px;">
-            <label>Registration Number:</label>
-            <input type="text" name="reg_no" required placeholder="e.g., NIT/2022/1234" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Registration Number:</label>
+            <input type="text" name="reg_no" required placeholder="e.g., NIT/2022/1234" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Semester:</label>
-            <input type="text" name="semester" required placeholder="e.g., 2024/2025 Sem I" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Semester:</label>
+            <input type="text" name="semester" required placeholder="e.g., 2024/2025 Sem I" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Amount Paid (TZS):</label>
-            <input type="number" name="amount" step="0.01" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Amount Paid (TZS):</label>
+            <input type="number" name="amount" step="0.01" required class="form-control">
         </div>
-        <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Record Payment</button>
-        <a href="index.php" style="margin-left: 10px;">Cancel</a>
+        <button type="submit" class="btn btn-success">Record Payment</button>
+        <a href="index.php" class="btn btn-secondary ms-2">Cancel</a>
     </form>
 </div>
 

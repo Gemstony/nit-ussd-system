@@ -43,28 +43,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+<div class="card p-4 mx-auto" style="max-width: 600px;">
     <h3>Edit Fee Record</h3>
     <p><strong>Student:</strong> <?php echo htmlspecialchars($fee['reg_no']); ?></p>
     <p><strong>Semester:</strong> <?php echo htmlspecialchars($fee['semester']); ?></p>
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <form method="POST">
-        <div style="margin-bottom: 15px;">
-            <label>Total Fees (TZS):</label>
-            <input type="number" name="total_fees" step="0.01" value="<?php echo $fee['total_fees']; ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Total Fees (TZS):</label>
+            <input type="number" name="total_fees" step="0.01" value="<?php echo $fee['total_fees']; ?>" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Paid Amount (TZS):</label>
-            <input type="number" name="paid_amount" step="0.01" value="<?php echo $fee['paid_amount']; ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Paid Amount (TZS):</label>
+            <input type="number" name="paid_amount" step="0.01" value="<?php echo $fee['paid_amount']; ?>" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Balance (auto-calculated):</label>
-            <input type="text" value="TZS <?php echo number_format($fee['total_fees'] - $fee['paid_amount'], 2); ?>" disabled style="width: 100%; padding: 8px; background: #eee;">
+        <div class="mb-3">
+            <label class="form-label">Balance (auto-calculated):</label>
+            <input type="text" value="TZS <?php echo number_format($fee['total_fees'] - $fee['paid_amount'], 2); ?>" disabled class="form-control bg-light">
         </div>
-        <button type="submit" style="background: #ffc107; color: black; padding: 10px 20px; border: none; border-radius: 4px;">Update</button>
-        <a href="index.php" style="margin-left: 10px;">Cancel</a>
+        <button type="submit" class="btn btn-warning">Update</button>
+        <a href="index.php" class="btn btn-secondary ms-2">Cancel</a>
     </form>
 </div>
 

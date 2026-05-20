@@ -42,29 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+<div class="card p-4 mx-auto" style="max-width: 600px;">
     <h3>Edit Result</h3>
     <p><strong>Student:</strong> <?php echo htmlspecialchars($result['reg_no']); ?></p>
     <p><strong>Semester:</strong> <?php echo htmlspecialchars($result['semester']); ?></p>
     <p><strong>Course Code:</strong> <?php echo htmlspecialchars($result['course_code']); ?></p>
     <?php if ($error): ?>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <form method="POST">
-        <div style="margin-bottom: 15px;">
-            <label>Course Name:</label>
-            <input type="text" name="course_name" value="<?php echo htmlspecialchars($result['course_name']); ?>" style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Course Name:</label>
+            <input type="text" name="course_name" value="<?php echo htmlspecialchars($result['course_name']); ?>" class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Grade:</label>
-            <input type="text" name="grade" value="<?php echo htmlspecialchars($result['grade']); ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Grade:</label>
+            <input type="text" name="grade" value="<?php echo htmlspecialchars($result['grade']); ?>" required class="form-control">
         </div>
-        <div style="margin-bottom: 15px;">
-            <label>Marks:</label>
-            <input type="number" name="marks" step="0.01" value="<?php echo $result['marks']; ?>" required style="width: 100%; padding: 8px;">
+        <div class="mb-3">
+            <label class="form-label">Marks:</label>
+            <input type="number" name="marks" step="0.01" value="<?php echo $result['marks']; ?>" required class="form-control">
         </div>
-        <button type="submit" style="background: #ffc107; color: black; padding: 10px 20px; border: none; border-radius: 4px;">Update</button>
-        <a href="index.php" style="margin-left: 10px;">Cancel</a>
+        <button type="submit" class="btn btn-warning">Update</button>
+        <a href="index.php" class="btn btn-secondary ms-2">Cancel</a>
     </form>
 </div>
 
