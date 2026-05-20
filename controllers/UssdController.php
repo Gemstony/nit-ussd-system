@@ -1,15 +1,20 @@
 <?php
 require_once __DIR__ . '/../models/UssdSession.php';
 require_once __DIR__ . '/../models/Student.php';
+require_once __DIR__ . '/../models/Results.php';
+
 // We'll add the other models (Results, Fee, CourseReg, Announcement) later.
 
-class UssdController {
+class UssdController
+{
     private $sessionModel;
     private $studentModel;
-
-    public function __construct() {
+    private $resultsModel;
+    public function __construct()
+    {
         $this->sessionModel = new UssdSession();
         $this->studentModel = new Student();
+        $this->resultsModel = new Results();
     }
 
     /**
@@ -17,7 +22,8 @@ class UssdController {
      * @param array $beem_data The decoded JSON payload from Beem
      * @return string The response to send back to Beem (starting with "CON " or "END ")
      */
-    public function handleRequest($beem_data) {
+    public function handleRequest($beem_data)
+    {
         // Extract data from Beem's payload
         $session_id = $beem_data['session_id'] ?? null;
         $phone_number = $beem_data['msisdn'] ?? null;
@@ -37,18 +43,19 @@ class UssdController {
         switch ($current_state) {
             case 'welcome':
                 return $this->handleWelcome($session_id);
-            
+
             case 'main_menu':
                 return $this->handleMainMenu($session_id, $user_input);
-            
+
             case 'awaiting_regno':
                 return $this->handleRegNoInput($session_id, $user_input);
-            
+
             case 'awaiting_pin':
                 return $this->handlePinInput($session_id, $user_input, $payload);
-            
+            case 'viewing_results':
+                return $this->handleViewingResults($session_id, $user_input, $payload);
             // We'll add more states as we build the menu (e.g., showing results, fees, etc.)
-            
+
             default:
                 // If we don't recognise the state, reset to welcome
                 $this->sessionModel->updateState($session_id, 'welcome');
@@ -61,7 +68,8 @@ class UssdController {
      * @param string $session_id
      * @return string
      */
-    private function handleWelcome($session_id) {
+    private function handleWelcome($session_id)
+    {
         $menu = "CON Welcome to NIT Information System\n";
         $menu .= "========================\n";
         $menu .= "1. Check Exam Results\n";
@@ -73,7 +81,7 @@ class UssdController {
 
         // Move to main_menu state
         $this->sessionModel->updateState($session_id, 'main_menu');
-        
+
         return $menu;
     }
 
@@ -83,27 +91,28 @@ class UssdController {
      * @param string $input
      * @return string
      */
-    private function handleMainMenu($session_id, $input) {
+    private function handleMainMenu($session_id, $input)
+    {
         switch ($input) {
             case '1':
                 $this->sessionModel->updateState($session_id, 'awaiting_regno', ['service' => 'results']);
                 return "CON Please enter your Registration Number:";
-            
+
             case '2':
                 $this->sessionModel->updateState($session_id, 'awaiting_regno', ['service' => 'fee']);
                 return "CON Please enter your Registration Number:";
-            
+
             case '3':
                 $this->sessionModel->updateState($session_id, 'awaiting_regno', ['service' => 'registration']);
                 return "CON Please enter your Registration Number:";
-            
+
             case '4':
                 return $this->showAnnouncements($session_id);
-            
+
             case '0':
                 $this->sessionModel->deleteSession($session_id);
                 return "END Thank you for using NIT Information System. Goodbye!";
-            
+
             default:
                 // Invalid option – show menu again
                 return $this->handleWelcome($session_id);
@@ -116,7 +125,8 @@ class UssdController {
      * @param string $reg_no
      * @return string
      */
-    private function handleRegNoInput($session_id, $reg_no) {
+    private function handleRegNoInput($session_id, $reg_no)
+    {
         // Basic validation (you can add more specific format checks)
         if (empty($reg_no)) {
             $this->sessionModel->updateState($session_id, 'main_menu');
@@ -135,7 +145,8 @@ class UssdController {
      * @param array $payload Current session payload
      * @return string
      */
-    private function handlePinInput($session_id, $pin, $payload) {
+    private function handlePinInput($session_id, $pin, $payload)
+    {
         $reg_no = $payload['reg_no'] ?? null;
         $service = $payload['service'] ?? 'results';
 
@@ -168,7 +179,8 @@ class UssdController {
      * Helper method to get the main menu text (for reuse).
      * @return string
      */
-    private function getMainMenuText() {
+    private function getMainMenuText()
+    {
         return "1. Check Exam Results\n2. Check Fee Balance\n3. Course Registration Status\n4. View Announcements\n0. Exit\n\nEnter your choice:";
     }
 
@@ -176,29 +188,85 @@ class UssdController {
      * Helper method to get the welcome text.
      * @return string
      */
-    private function getWelcomeText() {
+    private function getWelcomeText()
+    {
         return "Welcome to NIT Information System\n========================\n" . $this->getMainMenuText();
     }
 
     // We'll implement these service methods (showResults, showFeeBalance, etc.) in the next step.
-    private function showAnnouncements($session_id) {
+    private function showAnnouncements($session_id)
+    {
         // Placeholder – to be implemented
         return "END Announcements feature coming soon.";
     }
 
-    private function showResults($session_id, $reg_no) {
-        // Placeholder – to be implemented
-        return "END Results feature coming soon.";
+    private function showResults($session_id, $reg_no)
+    {
+        // Get all results for this student
+        $results = $this->resultsModel->getResults($reg_no);
+
+        if (empty($results)) {
+            $this->sessionModel->deleteSession($session_id);
+            return "END No results found for registration number: $reg_no";
+        }
+
+        // Format the results
+        $output = "CON Your Exam Results:\n------------------------\n";
+        $output .= $this->resultsModel->formatResultsForUssd($results);
+        $output .= "\n0. Main Menu\n";
+
+        // Store the results and current offset in session payload for potential pagination
+        $this->sessionModel->updateState($session_id, 'viewing_results', [
+            'reg_no' => $reg_no,
+            'results_data' => $results,
+            'offset' => 0
+        ]);
+
+        return $output;
     }
 
-    private function showFeeBalance($session_id, $reg_no) {
+    private function showFeeBalance($session_id, $reg_no)
+    {
         // Placeholder – to be implemented
         return "END Fee balance feature coming soon.";
     }
 
-    private function showRegistrationStatus($session_id, $reg_no) {
+    private function showRegistrationStatus($session_id, $reg_no)
+    {
         // Placeholder – to be implemented
         return "END Registration status feature coming soon.";
+    }
+
+    private function handleViewingResults($session_id, $input, $payload)
+    {
+        $reg_no = $payload['reg_no'] ?? null;
+        $results = $payload['results_data'] ?? [];
+        $offset = $payload['offset'] ?? 0;
+
+        if ($input === '0') {
+            // Go back to main menu
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
+
+        // If user presses anything else, try to show next page
+        $new_offset = $offset + 5;
+        if ($this->resultsModel->hasMoreResults($results, $offset)) {
+            $output = "CON Your Exam Results (continued):\n------------------------\n";
+            $output .= $this->resultsModel->formatResultsForUssd($results, $new_offset);
+            $output .= "\n0. Main Menu\n";
+
+            $this->sessionModel->updateState($session_id, 'viewing_results', [
+                'reg_no' => $reg_no,
+                'results_data' => $results,
+                'offset' => $new_offset
+            ]);
+            return $output;
+        } else {
+            // No more results, end session or return to main menu
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
     }
 }
 ?>
