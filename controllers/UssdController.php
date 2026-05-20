@@ -3,6 +3,7 @@ require_once __DIR__ . '/../models/UssdSession.php';
 require_once __DIR__ . '/../models/Student.php';
 require_once __DIR__ . '/../models/Results.php';
 require_once __DIR__ . '/../models/Fee.php';
+require_once __DIR__ . '/../models/CourseRegistration.php';
 
 // We'll add the other models (Results, Fee, CourseReg, Announcement) later.
 
@@ -12,12 +13,14 @@ class UssdController
     private $studentModel;
     private $resultsModel;
     private $feeModel;
+    private $courseRegModel;
     public function __construct()
     {
         $this->sessionModel = new UssdSession();
         $this->studentModel = new Student();
         $this->resultsModel = new Results();
         $this->feeModel = new Fee();
+        $this->courseRegModel = new CourseRegistration();
     }
 
     /**
@@ -60,6 +63,9 @@ class UssdController
 
             case 'viewing_fees':
                 return $this->handleViewingFees($session_id, $user_input, $payload);
+
+            case 'viewing_courses':
+                return $this->handleViewingCourses($session_id, $user_input, $payload);
             // We'll add more states as we build the menu (e.g., showing results, fees, etc.)
 
             default:
@@ -267,8 +273,37 @@ class UssdController
 
     private function showRegistrationStatus($session_id, $reg_no)
     {
-        // Placeholder – to be implemented
-        return "END Registration status feature coming soon.";
+        // Get all registered courses for this student
+        $courses = $this->courseRegModel->getRegisteredCourses($reg_no);
+
+        if (empty($courses)) {
+            $this->sessionModel->deleteSession($session_id);
+            return "END No course registration records found for registration number: $reg_no";
+        }
+
+        // Check if courses span multiple semesters
+        $semesters = array_unique(array_column($courses, 'semester'));
+
+        if (count($semesters) == 1) {
+            // Only one semester – show courses directly
+            $output = "CON Registered Courses (" . $semesters[0] . "):\n------------------------\n";
+            $output .= $this->courseRegModel->formatCoursesForUssd($courses);
+            $output .= "\n0. Main Menu\n";
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $output;
+        } else {
+            // Multiple semesters – show grouped by semester with pagination
+            $output = "CON Course Registration Summary:\n------------------------\n";
+            $output .= $this->courseRegModel->formatCoursesBySemester($courses);
+            $output .= "\n0. Main Menu\n";
+
+            $this->sessionModel->updateState($session_id, 'viewing_courses', [
+                'reg_no' => $reg_no,
+                'course_data' => $courses,
+                'offset' => 0
+            ]);
+            return $output;
+        }
     }
 
     private function handleViewingResults($session_id, $input, $payload)
@@ -304,9 +339,42 @@ class UssdController
     }
 
 
-    private function handleViewingFees($session_id, $input, $payload) {
+    private function handleViewingFees($session_id, $input, $payload)
+    {
+        $reg_no = $payload['reg_no'] ?? null;
+        $feeRecords = $payload['fee_data'] ?? [];
+        $offset = $payload['offset'] ?? 0;
+
+        if ($input === '0') {
+            // Go back to main menu
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
+
+        // User pressed any other key – show next page if available
+        $new_offset = $offset + 2;
+        if ($this->feeModel->hasMoreRecords($feeRecords, $offset)) {
+            $output = "CON Fee Balances (continued):\n------------------------\n";
+            $output .= $this->feeModel->formatMultipleFeesForUssd($feeRecords, $new_offset);
+            $output .= "\n0. Main Menu\n";
+
+            $this->sessionModel->updateState($session_id, 'viewing_fees', [
+                'reg_no' => $reg_no,
+                'fee_data' => $feeRecords,
+                'offset' => $new_offset
+            ]);
+            return $output;
+        } else {
+            // No more records, return to main menu
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
+    }
+
+
+    private function handleViewingCourses($session_id, $input, $payload) {
     $reg_no = $payload['reg_no'] ?? null;
-    $feeRecords = $payload['fee_data'] ?? [];
+    $courses = $payload['course_data'] ?? [];
     $offset = $payload['offset'] ?? 0;
     
     if ($input === '0') {
@@ -315,21 +383,21 @@ class UssdController
         return $this->handleWelcome($session_id);
     }
     
-    // User pressed any other key – show next page if available
-    $new_offset = $offset + 2;
-    if ($this->feeModel->hasMoreRecords($feeRecords, $offset)) {
-        $output = "CON Fee Balances (continued):\n------------------------\n";
-        $output .= $this->feeModel->formatMultipleFeesForUssd($feeRecords, $new_offset);
+    // User pressed any other key – show next page
+    $new_offset = $offset + 2; // because formatCoursesBySemester shows 2 semesters per page
+    
+    if ($this->courseRegModel->hasMoreSemesters($courses, $offset)) {
+        $output = "CON Course Registration (continued):\n------------------------\n";
+        $output .= $this->courseRegModel->formatCoursesBySemester($courses, $new_offset);
         $output .= "\n0. Main Menu\n";
         
-        $this->sessionModel->updateState($session_id, 'viewing_fees', [
+        $this->sessionModel->updateState($session_id, 'viewing_courses', [
             'reg_no' => $reg_no,
-            'fee_data' => $feeRecords,
+            'course_data' => $courses,
             'offset' => $new_offset
         ]);
         return $output;
     } else {
-        // No more records, return to main menu
         $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
         return $this->handleWelcome($session_id);
     }
