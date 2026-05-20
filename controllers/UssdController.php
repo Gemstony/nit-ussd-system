@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Student.php';
 require_once __DIR__ . '/../models/Results.php';
 require_once __DIR__ . '/../models/Fee.php';
 require_once __DIR__ . '/../models/CourseRegistration.php';
+require_once __DIR__ . '/../models/Announcement.php';
 
 // We'll add the other models (Results, Fee, CourseReg, Announcement) later.
 
@@ -14,6 +15,7 @@ class UssdController
     private $resultsModel;
     private $feeModel;
     private $courseRegModel;
+    private $announcementModel;
     public function __construct()
     {
         $this->sessionModel = new UssdSession();
@@ -21,6 +23,7 @@ class UssdController
         $this->resultsModel = new Results();
         $this->feeModel = new Fee();
         $this->courseRegModel = new CourseRegistration();
+        $this->announcementModel = new Announcement();
     }
 
     /**
@@ -66,6 +69,12 @@ class UssdController
 
             case 'viewing_courses':
                 return $this->handleViewingCourses($session_id, $user_input, $payload);
+
+            case 'announcements_list':
+                return $this->handleAnnouncementsList($session_id, $user_input, $payload);
+
+            case 'viewing_announcement':
+                return $this->handleViewingAnnouncement($session_id, $user_input, $payload);
             // We'll add more states as we build the menu (e.g., showing results, fees, etc.)
 
             default:
@@ -208,8 +217,36 @@ class UssdController
     // We'll implement these service methods (showResults, showFeeBalance, etc.) in the next step.
     private function showAnnouncements($session_id)
     {
-        // Placeholder – to be implemented
-        return "END Announcements feature coming soon.";
+        // For announcements, we don't require authentication (public info)
+        $announcements = $this->announcementModel->getActiveAnnouncements('students');
+
+        if (empty($announcements)) {
+            $this->sessionModel->deleteSession($session_id);
+            return "END No announcements available at this time.";
+        }
+
+        // If only one announcement, show it fully and end (or allow back)
+        if (count($announcements) == 1) {
+            $output = $this->announcementModel->formatFullAnnouncement($announcements[0]);
+            // Replace CON with END if you don't need navigation, but we'll keep CON for '0'
+            $this->sessionModel->updateState($session_id, 'viewing_announcement', [
+                'announcements' => $announcements,
+                'current_index' => 0
+            ]);
+            return $output;
+        }
+
+        // Multiple announcements – show a list with numbers
+        $output = "CON Announcements:\n------------------------\n";
+        $output .= $this->announcementModel->formatAnnouncementsForUssd($announcements);
+        $output .= "\nEnter number to read full details.\n0. Main Menu";
+
+        // Store full list in session for later detail view
+        $this->sessionModel->updateState($session_id, 'announcements_list', [
+            'announcements' => $announcements
+        ]);
+
+        return $output;
     }
 
     private function showResults($session_id, $reg_no)
@@ -372,35 +409,90 @@ class UssdController
     }
 
 
-    private function handleViewingCourses($session_id, $input, $payload) {
-    $reg_no = $payload['reg_no'] ?? null;
-    $courses = $payload['course_data'] ?? [];
-    $offset = $payload['offset'] ?? 0;
+    private function handleViewingCourses($session_id, $input, $payload)
+    {
+        $reg_no = $payload['reg_no'] ?? null;
+        $courses = $payload['course_data'] ?? [];
+        $offset = $payload['offset'] ?? 0;
+
+        if ($input === '0') {
+            // Go back to main menu
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
+
+        // User pressed any other key – show next page
+        $new_offset = $offset + 2; // because formatCoursesBySemester shows 2 semesters per page
+
+        if ($this->courseRegModel->hasMoreSemesters($courses, $offset)) {
+            $output = "CON Course Registration (continued):\n------------------------\n";
+            $output .= $this->courseRegModel->formatCoursesBySemester($courses, $new_offset);
+            $output .= "\n0. Main Menu\n";
+
+            $this->sessionModel->updateState($session_id, 'viewing_courses', [
+                'reg_no' => $reg_no,
+                'course_data' => $courses,
+                'offset' => $new_offset
+            ]);
+            return $output;
+        } else {
+            $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+            return $this->handleWelcome($session_id);
+        }
+    }
+
+
+    private function handleAnnouncementsList($session_id, $input, $payload) {
+    $announcements = $payload['announcements'] ?? [];
     
     if ($input === '0') {
-        // Go back to main menu
-        $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+        // Return to main menu
+        $this->sessionModel->updateState($session_id, 'main_menu');
         return $this->handleWelcome($session_id);
     }
     
-    // User pressed any other key – show next page
-    $new_offset = $offset + 2; // because formatCoursesBySemester shows 2 semesters per page
-    
-    if ($this->courseRegModel->hasMoreSemesters($courses, $offset)) {
-        $output = "CON Course Registration (continued):\n------------------------\n";
-        $output .= $this->courseRegModel->formatCoursesBySemester($courses, $new_offset);
-        $output .= "\n0. Main Menu\n";
-        
-        $this->sessionModel->updateState($session_id, 'viewing_courses', [
-            'reg_no' => $reg_no,
-            'course_data' => $courses,
-            'offset' => $new_offset
+    // Validate input is a number between 1 and total announcements
+    $index = (int)$input - 1;
+    if ($index >= 0 && $index < count($announcements)) {
+        // Show selected announcement in full
+        $output = $this->announcementModel->formatFullAnnouncement($announcements[$index]);
+        $this->sessionModel->updateState($session_id, 'viewing_announcement', [
+            'announcements' => $announcements,
+            'current_index' => $index
         ]);
         return $output;
     } else {
-        $this->sessionModel->updateState($session_id, 'main_menu', ['reg_no' => $reg_no]);
+        // Invalid selection, redisplay list
+        $output = "CON Invalid choice. Please try again.\n------------------------\n";
+        $output .= $this->announcementModel->formatAnnouncementsForUssd($announcements);
+        $output .= "\nEnter number to read full details.\n0. Main Menu";
+        return $output;
+    }
+}
+
+private function handleViewingAnnouncement($session_id, $input, $payload) {
+    $announcements = $payload['announcements'] ?? [];
+    $current_index = $payload['current_index'] ?? 0;
+    
+    if ($input === '0') {
+        // Go back to list
+        $this->sessionModel->updateState($session_id, 'announcements_list', [
+            'announcements' => $announcements
+        ]);
+        $output = "CON Announcements:\n------------------------\n";
+        $output .= $this->announcementModel->formatAnnouncementsForUssd($announcements);
+        $output .= "\nEnter number to read full details.\n0. Main Menu";
+        return $output;
+    }
+    
+    if ($input === '00') {
+        // Go to main menu
+        $this->sessionModel->updateState($session_id, 'main_menu');
         return $this->handleWelcome($session_id);
     }
+    
+    // Any other input – stay on same announcement (maybe show again)
+    return $this->announcementModel->formatFullAnnouncement($announcements[$current_index]);
 }
 }
 ?>
