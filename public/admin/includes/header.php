@@ -83,13 +83,13 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 <body>
     <div class="sidebar">
         <h3 style="padding: 0 20px 20px;">NIT USSD Admin</h3>
-        <a href="/admin/index.php">🏠 Dashboard</a>
-        <a href="/admin/students/index.php">👨‍🎓 Students</a>
-        <a href="/admin/fees/index.php">💰 Fees</a>
-        <a href="/admin/results/index.php">📊 Results</a>
-        <a href="/admin/registrations/index.php">📝 Registrations</a>
-        <a href="/admin/announcements/index.php">📢 Announcements</a>
-        <a href="/admin/logs/index.php">📜 Session Logs</a>
+        <a href="/nit-ussd-system/public/admin/index.php">🏠 Dashboard</a>
+        <a href="/nit-ussd-system/public/admin/students/index.php">👨‍🎓 Students</a>
+        <a href="/nit-ussd-system/public/admin/fees/index.php">💰 Fees</a>
+        <a href="/nit-ussd-system/public/admin/results/index.php">📊 Results</a>
+        <a href="/nit-ussd-system/public/admin/registrations/index.php">📝 Registrations</a>
+        <a href="/nit-ussd-system/public/admin/announcements/index.php">📢 Announcements</a>
+        <a href="/nit-ussd-system/public/admin/logs/index.php">📜 Session Logs</a>
     </div>
     <div class="content">
         <div class="top-bar">
