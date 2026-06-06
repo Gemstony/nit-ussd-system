@@ -61,7 +61,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
         <div>
             <a href="add.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Add Single Result</a>
-            <!-- <a href="upload.php" class="btn btn-info"><i class="bi bi-upload me-1"></i>Upload CSV</a> -->
+            <a href="upload.php" class="btn btn-info"><i class="bi bi-upload me-1"></i>Upload CSV</a>
         </div>
         <form method="GET" class="d-flex gap-2 flex-wrap">
             <input type="text" name="reg_no" class="form-control form-control-sm" placeholder="Reg No" value="<?php echo htmlspecialchars($reg_no); ?>">

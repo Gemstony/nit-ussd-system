@@ -14,7 +14,7 @@ CREATE TABLE students (
 );
 
 
-CREATE TABLE results (
+CREATE TABLE results (3
     result_id INT AUTO_INCREMENT PRIMARY KEY,
     reg_no VARCHAR(20) NOT NULL,
     semester VARCHAR(10) NOT NULL,      -- e.g., "2024/2025 Sem I"
